@@ -1,0 +1,42 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Oracle SQL y PL/SQL — Demo HWR</title><link rel="stylesheet" href="demo.css"></head><body><header class="top"><div class="wrap top-inner"><a class="brand" href="../index.html">HWR<b>.</b> PORTAFOLIO</a><a class="back" href="../index.html#proyectos">← Volver al portafolio</a></div></header><section class="hero"><div class="wrap"><div class="eyebrow">PROYECTO DEMOSTRATIVO · ORACLE DATABASE</div><h1>Consultas SQL & PL/SQL</h1><p>Laboratorio ilustrativo de consultas relacionadas con gestión humana. Selecciona un ejemplo para revisar el código y una salida simulada basada en registros ficticios.</p><span class="demo-label">EJEMPLOS TÉCNICOS · SIN CONEXIÓN A ORACLE</span></div></section><main class="wrap content"><div class="toolbar"><h2>Explorador de consultas</h2><span class="note">Selecciona un caso de uso</span></div><div class="filters"><select id="example"><option value="activos">Colaboradores activos</option><option value="area">Resumen por dependencia</option><option value="procedure">Procedimiento PL/SQL</option><option value="function">Función PL/SQL</option></select></div><section class="panel"><div class="toolbar"><h3 id="queryTitle">Consulta de colaboradores activos</h3><button id="copy">Copiar código</button></div><pre id="code" style="white-space:pre-wrap;overflow:auto;background:#14243a;color:#d7e7f6;padding:20px;border-radius:4px;font:12px/1.8 Consolas,monospace"></pre><div class="result" id="feedback" style="display:block">Código de ejemplo listo para revisar.</div></section><section class="panel"><h3>Resultado ilustrativo</h3><div class="table-scroll"><table><thead id="head"></thead><tbody id="rows"></tbody></table></div><p class="note">Los datos y resultados son ficticios. El código se presenta con fines demostrativos y debe ajustarse al esquema, nombres de tablas, reglas de negocio y versión de Oracle del entorno donde se implemente.</p></section></main><footer class="footer"><div class="wrap"><span>HWR · DEMOSTRACIÓN DE PORTAFOLIO</span><a href="../index.html#proyectos">Regresar a proyectos ↗</a></div></footer><script>
+const examples={
+activos:{title:'Consulta de colaboradores activos',code:`SELECT
+    empleado_id,
+    nombre_completo,
+    dependencia,
+    cargo
+FROM colaboradores
+WHERE estado = 'ACTIVO'
+ORDER BY nombre_completo;`,headers:['ID','COLABORADOR','DEPENDENCIA','CARGO'],rows:[['1001','Ana Pérez','Talento Humano','Analista'],['1002','Luis Gómez','Tecnología','Desarrollador'],['1003','Marta Ruiz','Financiera','Profesional']]},
+area:{title:'Resumen de personal por dependencia',code:`SELECT
+    dependencia,
+    COUNT(*) AS total_colaboradores
+FROM colaboradores
+WHERE estado = 'ACTIVO'
+GROUP BY dependencia
+ORDER BY total_colaboradores DESC;`,headers:['DEPENDENCIA','TOTAL ACTIVOS'],rows:[['Talento Humano','24'],['Tecnología','18'],['Financiera','12']]},
+procedure:{title:'Procedimiento almacenado de actualización',code:`CREATE OR REPLACE PROCEDURE actualizar_estado(
+    p_empleado_id IN NUMBER,
+    p_nuevo_estado IN VARCHAR2
+) AS
+BEGIN
+    UPDATE colaboradores
+       SET estado = UPPER(p_nuevo_estado)
+     WHERE empleado_id = p_empleado_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001,
+          'No existe el colaborador indicado');
+    END IF;
+END actualizar_estado;
+/`,headers:['ELEMENTO','DESCRIPCIÓN'],rows:[['Entrada','ID del colaborador y nuevo estado'],['Proceso','Actualiza el registro correspondiente'],['Control','Valida si se modificó alguna fila']]},
+function:{title:'Función para calcular antigüedad',code:`CREATE OR REPLACE FUNCTION calcular_antiguedad(
+    p_fecha_ingreso IN DATE
+) RETURN NUMBER AS
+BEGIN
+    RETURN TRUNC(MONTHS_BETWEEN(SYSDATE,
+                                p_fecha_ingreso) / 12);
+END calcular_antiguedad;
+/`,headers:['ENTRADA DE EJEMPLO','RESULTADO ILUSTRATIVO'],rows:[['15/03/2018','8 años (aprox.)'],['01/07/2022','4 años (aprox.)']]}}
+function render(){const x=examples[document.getElementById('example').value];document.getElementById('queryTitle').textContent=x.title;document.getElementById('code').textContent=x.code;document.getElementById('head').innerHTML='<tr>'+x.headers.map(v=>'<th>'+v+'</th>').join('')+'</tr>';document.getElementById('rows').innerHTML=x.rows.map(r=>'<tr>'+r.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('');document.getElementById('feedback').textContent='Ejemplo seleccionado. El resultado mostrado es ilustrativo y no proviene de una base de datos conectada.'}document.getElementById('example').addEventListener('change',render);document.getElementById('copy').addEventListener('click',async()=>{const t=document.getElementById('code').textContent;try{await navigator.clipboard.writeText(t);document.getElementById('feedback').textContent='Código copiado al portapapeles.'}catch(e){document.getElementById('feedback').textContent='Selecciona el código y cópialo manualmente.'}});render();
+</script></body></html>
